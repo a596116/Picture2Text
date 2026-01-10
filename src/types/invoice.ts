@@ -14,7 +14,7 @@ export interface InvoiceData {
   remarks: string // 備註
 }
 
-// 上傳的檔案資訊
+// 上傳的檔案資訊（保留舊的以兼容）
 export interface UploadFileInfo {
   id: string
   file: File
@@ -22,6 +22,17 @@ export interface UploadFileInfo {
   preview: string
   status: 'pending' | 'recognizing' | 'success' | 'error'
   invoiceData?: InvoiceData
+}
+
+// 發票 Session（新設計）
+export interface InvoiceSession {
+  id: string
+  file: File
+  previewUrl: string
+  status: 'uploading' | 'processing' | 'review' | 'success' | 'error' | 'saving' | 'idle'
+  base64?: string
+  data?: InvoiceData
+  errorMessage?: string
 }
 
 // API 回應介面
