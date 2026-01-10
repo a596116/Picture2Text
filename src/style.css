@@ -1,0 +1,129 @@
+@import 'tailwindcss';
+
+/* 設計系統變量 - 以 --u- 開頭 */
+@theme {
+  /* 主色系 - 蘋果藍 */
+  --color-u-primary: #007aff;
+  --color-u-primary-hover: #0051d5;
+  --color-u-primary-light: rgba(0, 122, 255, 0.1);
+
+  /* 輔助色系 */
+  --color-u-success: #34c759;
+  --color-u-success-light: rgba(52, 199, 89, 0.1);
+  --color-u-error: #ff3b30;
+  --color-u-error-light: rgba(255, 59, 48, 0.1);
+  --color-u-warning: #ffcc00;
+  --color-u-warning-light: rgba(255, 204, 0, 0.1);
+
+  /* 中性色系 */
+  --color-u-text-primary: #1d1d1f;
+  --color-u-text-secondary: #86868b;
+  --color-u-bg-primary: #ffffff;
+  --color-u-bg-secondary: #f5f5f7;
+  --color-u-bg-tertiary: #fafafa;
+  --color-u-border: rgba(0, 0, 0, 0.06);
+  --color-u-border-hover: rgba(0, 0, 0, 0.1);
+
+  /* 圓角 */
+  --radius-u-sm: 8px;
+  --radius-u-md: 12px;
+  --radius-u-lg: 18px;
+  --radius-u-xl: 24px;
+
+  /* 陰影 */
+  --shadow-u-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-u-md: 0 4px 6px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-u-lg: 0 10px 15px rgba(0, 0, 0, 0.06), 0 4px 6px rgba(0, 0, 0, 0.05);
+
+  /* 字體大小 */
+  --font-size-u-xs: 0.6875rem;
+  --font-size-u-sm: 0.75rem;
+  --font-size-u-base: 0.9375rem;
+  --font-size-u-lg: 1.0625rem;
+  --font-size-u-xl: 1.25rem;
+
+  /* 間距 */
+  --spacing-u-xs: 0.25rem;
+  --spacing-u-sm: 0.5rem;
+  --spacing-u-md: 0.75rem;
+  --spacing-u-lg: 1rem;
+  --spacing-u-xl: 1.25rem;
+  --spacing-u-2xl: 1.5rem;
+}
+
+/* 全域樣式 */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+    'Helvetica', 'Arial', sans-serif;
+}
+
+/* 客製化 Element Plus Message 樣式 */
+.el-message {
+  border-radius: 14px !important;
+  padding: 1rem 1.25rem !important;
+  border: none !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+  backdrop-filter: blur(10px);
+  min-width: 300px;
+  font-weight: 500;
+}
+
+.el-message.el-message--success {
+  background: rgba(209, 250, 229, 0.95) !important;
+  color: #065f46 !important;
+}
+
+.el-message.el-message--error {
+  background: rgba(254, 226, 226, 0.95) !important;
+  color: #991b1b !important;
+}
+
+.el-message.el-message--warning {
+  background: rgba(254, 243, 199, 0.95) !important;
+  color: #92400e !important;
+}
+
+.el-message.el-message--info {
+  background: rgba(219, 234, 254, 0.95) !important;
+  color: #1e40af !important;
+}
+
+.el-message__icon {
+  font-size: 1.125rem !important;
+}
+
+.el-message__content {
+  font-size: 0.9375rem !important;
+  letter-spacing: -0.01em;
+}
+
+/* 客製化 DatePicker 樣式 */
+.el-date-editor {
+  width: 100%;
+  border-radius: 12px !important;
+  border: 1.5px solid #e5e7eb !important;
+}
+
+.el-date-editor:hover {
+  border-color: #d1d5db !important;
+}
+
+.el-date-editor.is-active,
+.el-date-editor:focus-within {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+.el-input__wrapper {
+  border-radius: 12px !important;
+  padding: 0.5rem 0.75rem !important;
+}
+
+.el-input__inner {
+  font-size: 0.9375rem !important;
+}
