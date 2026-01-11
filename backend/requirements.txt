@@ -1,0 +1,25 @@
+# FastAPI核心依赖
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# 数据库相关
+SQLAlchemy==2.0.23
+pyodbc==5.0.1
+
+# 安全相关
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.6
+
+# 工具库
+python-dotenv==1.0.0
+email-validator==2.1.0
+
+# 其他
+httpx==0.25.2
+
+# AI 识别相关
+openai==1.54.4
+pillow==10.1.0
