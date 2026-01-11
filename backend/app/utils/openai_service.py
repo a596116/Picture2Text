@@ -1,3 +1,9 @@
+"""
+⚠️ 此文件已棄用，請使用 app.services.ai_service 代替
+
+此文件保留僅為向後兼容，新代碼請使用：
+    from app.services.ai_service import ai_service
+"""
 import base64
 import json
 from typing import Optional

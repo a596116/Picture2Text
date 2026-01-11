@@ -41,6 +41,16 @@ class Settings(BaseSettings):
     DEFAULT_PAGE_SIZE: int = 10
     MAX_PAGE_SIZE: int = 100
 
+    # 緩存設定
+    CACHE_ENABLED: bool = True
+    CACHE_EXPIRE_SECONDS: int = 3600  # 緩存過期時間（秒）
+    REDIS_ENABLED: bool = False
+    REDIS_URL: str = "redis://localhost:6379"
+
+    # 限流設定
+    RATE_LIMIT_ENABLED: bool = True
+    RATE_LIMIT_REQUESTS_PER_MINUTE: int = 60
+
     # AI 服務設定
     AI_SERVICE_TYPE: str = "openai"  # "openai" 或 "ollama"
     

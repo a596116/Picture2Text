@@ -5,6 +5,7 @@ from app.config import settings
 from app.api.router import api_router
 from app.middleware.logging import LoggingMiddleware
 from app.middleware.cors import setup_cors
+from app.middleware.rate_limit import RateLimitMiddleware
 from app.core.exceptions import CustomException
 
 # 建立 FastAPI 應用程式實例
@@ -20,8 +21,11 @@ app = FastAPI(
 # 配置 CORS 中介軟體
 setup_cors(app)
 
-# 新增日誌中介軟體
+# 新增日誌中介軟體（最外層，最後執行）
 app.add_middleware(LoggingMiddleware)
+
+# 新增請求限流中介軟體（在日誌中間件之前）
+app.add_middleware(RateLimitMiddleware, requests_per_minute=60)
 
 
 # 自訂異常處理
