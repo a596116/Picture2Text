@@ -16,6 +16,9 @@
       @change="handleFileUpload"
     />
 
+    <!-- 相機組件 -->
+    <CameraCapture v-model="showCamera" @capture="handleCameraCapture" />
+
     <!-- 拖曳遮罩層 -->
     <div
       v-if="isDragging"
@@ -45,6 +48,7 @@
       :is-saving-all="isSavingAll"
       @select="invoiceStore.setActiveId"
       @add-more="fileInputRef?.click()"
+      @take-photo="showCamera = true"
       @delete="invoiceStore.handleDeleteSession"
       @save-all="invoiceStore.handleSaveAll"
       @delete-all="invoiceStore.handleDeleteAll"
@@ -84,6 +88,14 @@
                 <Loader2 v-if="isSavingAll" class="animate-spin" :size="16" />
                 <span v-if="isSavingAll">保存中...</span>
                 <span v-else>保存所有 ({{ reviewableCount }})</span>
+              </button>
+
+              <button
+                @click="showCamera = true"
+                class="p-2.5 rounded-full cursor-pointer hover:bg-green-50 text-green-600 transition-all shadow-sm hover:shadow-md"
+                title="拍照上傳"
+              >
+                <Camera :size="20" />
               </button>
 
               <button
@@ -153,13 +165,16 @@ import SessionList from '../components/SessionList.vue'
 import InvoicePreview from '../components/InvoicePreview.vue'
 import InvoiceEditor from '../components/InvoiceEditor.vue'
 import InvoiceSwiper from '../components/InvoiceSwiper.vue'
-import { Plus, Loader2, Upload } from 'lucide-vue-next'
+import CameraCapture from '../components/CameraCapture.vue'
+import { Plus, Loader2, Upload, Camera } from 'lucide-vue-next'
 
 const router = useRouter()
 const invoiceStore = useInvoiceStore()
 
 /** 檔案輸入框的引用 */
 const fileInputRef = ref<HTMLInputElement | null>(null)
+/** 相機顯示狀態 */
+const showCamera = ref(false)
 
 /** 是否正在拖曳檔案 */
 const isDragging = ref(false)
@@ -190,6 +205,13 @@ const handleFileUpload = async (event: Event) => {
   await invoiceStore.processFiles(files)
   // 清空輸入框
   if (target.value) target.value = ''
+}
+
+/**
+ * 處理相機拍攝的照片
+ */
+const handleCameraCapture = async (file: File) => {
+  await invoiceStore.processFiles([file])
 }
 
 /**

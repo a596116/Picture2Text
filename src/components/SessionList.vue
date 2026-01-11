@@ -8,13 +8,22 @@
         <h2 class="font-semibold text-slate-800">
           發票 ({{ sessions.length }})
         </h2>
-        <button
-          @click="$emit('addMore')"
-          class="p-2 rounded-full cursor-pointer hover:bg-white hover:shadow-sm text-blue-600 transition-all"
-          title="上傳更多"
-        >
-          <Plus :size="20" />
-        </button>
+        <div class="flex items-center gap-2">
+          <button
+            @click="$emit('takePhoto')"
+            class="p-2 rounded-full cursor-pointer hover:bg-white hover:shadow-sm text-green-600 transition-all"
+            title="拍照上傳"
+          >
+            <Camera :size="20" />
+          </button>
+          <button
+            @click="$emit('addMore')"
+            class="p-2 rounded-full cursor-pointer hover:bg-white hover:shadow-sm text-blue-600 transition-all"
+            title="上傳更多"
+          >
+            <Plus :size="20" />
+          </button>
+        </div>
       </div>
 
       <!-- 批量操作按鈕 -->
@@ -151,6 +160,7 @@ import {
   AlertCircle,
   FileText,
   Trash2,
+  Camera,
 } from 'lucide-vue-next'
 
 interface SessionListProps {
@@ -176,6 +186,7 @@ const hasReviewableSessions = computed(() => {
 defineEmits<{
   select: [id: string]
   addMore: []
+  takePhoto: []
   delete: [id: string]
   saveAll: []
   deleteAll: []

@@ -61,26 +61,45 @@
       </p>
 
       <!-- 上傳區域 -->
-      <div
-        class="mt-8 p-12 bg-white/60 backdrop-blur-xl rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 group cursor-pointer border-dashed border-2 border-slate-300 hover:border-blue-400 relative overflow-hidden"
-        @click="fileInputRef?.click()"
-      >
-        <div class="flex flex-col items-center gap-4 relative z-10">
-          <div
-            class="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform duration-300"
-          >
-            <Upload :size="32" :stroke-width="1.5" />
-          </div>
-          <div class="space-y-1 text-center">
-            <p class="font-semibold text-lg text-slate-700">點擊上傳發票</p>
-            <p class="text-slate-400 text-sm">
-              支援 JPG、PNG（可多選）或拖曳檔案到頁面任意處
-            </p>
+      <div class="mt-8 space-y-4">
+        <div
+          class="p-12 bg-white/60 backdrop-blur-xl rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 group cursor-pointer border-dashed border-2 border-slate-300 hover:border-blue-400 relative overflow-hidden"
+          @click="fileInputRef?.click()"
+        >
+          <div class="flex flex-col items-center gap-4 relative z-10">
+            <div
+              class="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform duration-300"
+            >
+              <Upload :size="32" :stroke-width="1.5" />
+            </div>
+            <div class="space-y-1 text-center">
+              <p class="font-semibold text-lg text-slate-700">點擊上傳發票</p>
+              <p class="text-slate-400 text-sm">
+                支援 JPG、PNG（可多選）或拖曳檔案到頁面任意處
+              </p>
+            </div>
           </div>
         </div>
+
+        <!-- 拍照按鈕 -->
+        <button
+          @click="showCamera = true"
+          class="w-full p-4 bg-white/60 backdrop-blur-xl rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200 hover:border-blue-400 flex items-center justify-center gap-3 group"
+        >
+          <div
+            class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600 group-hover:scale-110 transition-transform duration-300"
+          >
+            <Camera :size="20" :stroke-width="1.5" />
+          </div>
+          <span
+            class="font-medium text-slate-700 group-hover:text-blue-600 transition-colors"
+          >
+            使用相機拍照
+          </span>
+        </button>
       </div>
 
-      <!-- 隱藏的檔案輸入框 -->
+      <!-- 隱藏的檔案輸入框（用於選擇檔案） -->
       <input
         ref="fileInputRef"
         type="file"
@@ -89,16 +108,22 @@
         multiple
         @change="handleFileChange"
       />
+
+      <!-- 相機組件 -->
+      <CameraCapture v-model="showCamera" @capture="handleCameraCapture" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Scan, Upload } from 'lucide-vue-next'
+import { Scan, Upload, Camera } from 'lucide-vue-next'
+import CameraCapture from './CameraCapture.vue'
 
 // 檔案輸入框的引用
 const fileInputRef = ref<HTMLInputElement | null>(null)
+// 相機顯示狀態
+const showCamera = ref(false)
 
 // 拖曳狀態
 const isDragging = ref(false)
@@ -116,6 +141,22 @@ const handleFileChange = (event: Event) => {
   // 清空輸入框，允許重複選擇相同檔案
   if (fileInputRef.value) {
     fileInputRef.value.value = ''
+  }
+}
+
+/**
+ * 處理相機拍攝的照片
+ */
+const handleCameraCapture = (file: File) => {
+  // 創建一個 FileList 來模擬 input 的 files
+  const dataTransfer = new DataTransfer()
+  dataTransfer.items.add(file)
+
+  // 觸發檔案選擇事件
+  if (fileInputRef.value) {
+    fileInputRef.value.files = dataTransfer.files
+    const changeEvent = new Event('change', { bubbles: true })
+    fileInputRef.value.dispatchEvent(changeEvent)
   }
 }
 
