@@ -18,12 +18,12 @@
       </div>
 
       <!-- 批量操作按鈕 -->
-      <div class="flex gap-2">
+      <div class="grid grid-cols-2 gap-2">
         <button
           v-if="hasReviewableSessions"
           @click="$emit('saveAll')"
           :disabled="isSavingAll"
-          class="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg font-medium text-sm cursor-pointer hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+          class="flex-1 py-2.5 bg-blue-600 text-white rounded-lg font-medium text-sm cursor-pointer hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
         >
           <Loader2 v-if="isSavingAll" class="animate-spin" :size="16" />
           <span v-if="isSavingAll">保存中...</span>
@@ -33,7 +33,7 @@
         <button
           v-if="sessions.length > 0"
           @click="$emit('deleteAll')"
-          class="px-4 py-2.5 bg-red-600 text-white rounded-lg font-medium text-sm cursor-pointer hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
+          class="py-2.5 bg-red-600 text-white rounded-lg font-medium text-sm cursor-pointer hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
           title="刪除所有發票"
         >
           <Trash2 :size="16" />

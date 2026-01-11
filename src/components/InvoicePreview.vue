@@ -14,6 +14,7 @@
           class="w-full block"
           :preview-src-list="[session.previewUrl]"
           fit="contain"
+          hide-on-click-modal
           style="display: block"
         >
           <template #error>
