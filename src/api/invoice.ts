@@ -17,7 +17,8 @@ const generateMockInvoiceData = (): InvoiceData => {
     sellerTaxId: '91110000MA01234567',
     buyer: '某某貿易有限公司',
     buyerTaxId: '91110000MA09876543',
-    remarks: '備註資訊'
+    remarks: '備註資訊',
+    items: []
   }
 }
 

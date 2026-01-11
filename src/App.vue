@@ -500,6 +500,7 @@ const handleManualInput = () => {
       buyer: '',
       buyerTaxId: '',
       remarks: '',
+      items: [],
     },
   })
 }

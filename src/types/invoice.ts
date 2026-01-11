@@ -1,3 +1,11 @@
+// 發票項目介面
+export interface InvoiceItem {
+  id: string
+  name: string // 項目名稱
+  quantity: string // 數量
+  price: string // 價格
+}
+
 // 發票資料介面
 export interface InvoiceData {
   id: string
@@ -12,6 +20,7 @@ export interface InvoiceData {
   buyer: string // 購買方名稱
   buyerTaxId: string // 購買方納稅人識別號
   remarks: string // 備註
+  items: InvoiceItem[] // 項目列表
 }
 
 // 上傳的檔案資訊（保留舊的以兼容）

@@ -178,13 +178,112 @@
         />
       </el-form-item>
     </div>
+
+    <!-- Items 列表 -->
+    <div class="mt-8 space-y-4">
+      <div class="flex items-center justify-between">
+        <h3
+          class="text-xs font-semibold text-slate-400 uppercase tracking-wider"
+        >
+          ITEMS
+        </h3>
+        <button
+          @click="handleAddItem"
+          class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium text-sm hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md"
+        >
+          <Plus :size="16" />
+          Add Item
+        </button>
+      </div>
+
+      <!-- Items 列表容器 -->
+      <div
+        v-if="formData.items && formData.items.length > 0"
+        class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"
+      >
+        <div
+          v-for="(item, index) in formData.items"
+          :key="item.id"
+          class="flex items-start gap-4 p-4 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors"
+        >
+          <!-- 項目名稱 -->
+          <el-form-item
+            :prop="`items.${index}.name`"
+            :rules="itemRules.name"
+            class="flex-1 min-w-0 mb-0 custom-form-item"
+          >
+            <el-input
+              v-model="item.name"
+              placeholder="項目名稱"
+              class="custom-input"
+              @input="handleItemChange(index, 'name', item.name)"
+              @blur="handleItemChange(index, 'name', item.name)"
+            />
+          </el-form-item>
+
+          <!-- 數量 -->
+          <el-form-item
+            :prop="`items.${index}.quantity`"
+            :rules="itemRules.quantity"
+            class="w-24 mb-0 custom-form-item"
+          >
+            <el-input
+              v-model="item.quantity"
+              type="number"
+              placeholder="數量"
+              class="custom-input"
+              @input="handleItemChange(index, 'quantity', item.quantity)"
+              @blur="handleItemChange(index, 'quantity', item.quantity)"
+            />
+          </el-form-item>
+
+          <!-- 價格 -->
+          <el-form-item
+            :prop="`items.${index}.price`"
+            :rules="itemRules.price"
+            class="w-32 mb-0 custom-form-item"
+          >
+            <el-input
+              v-model="item.price"
+              type="number"
+              placeholder="價格"
+              class="custom-input"
+              @input="handleItemChange(index, 'price', item.price)"
+              @blur="handleItemChange(index, 'price', item.price)"
+            >
+              <template #prefix>
+                <span class="text-slate-400 font-medium">$</span>
+              </template>
+            </el-input>
+          </el-form-item>
+
+          <!-- 刪除按鈕 -->
+          <button
+            @click="handleRemoveItem(index)"
+            class="shrink-0 p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors mt-1"
+            title="刪除項目"
+          >
+            <Trash2 :size="18" />
+          </button>
+        </div>
+      </div>
+
+      <!-- 空狀態 -->
+      <div
+        v-else
+        class="bg-white rounded-xl border border-slate-200 shadow-sm p-8 text-center text-slate-400"
+      >
+        <p class="text-sm">目前沒有項目，點擊 "Add Item" 按鈕添加</p>
+      </div>
+    </div>
   </el-form>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
-import type { InvoiceData } from '../types/invoice'
+import type { InvoiceData, InvoiceItem } from '../types/invoice'
+import { Plus, Trash2 } from 'lucide-vue-next'
 
 interface InvoiceFormProps {
   data: InvoiceData
@@ -214,6 +313,7 @@ const formData = reactive<InvoiceData>({
   buyer: props.data.buyer || '',
   buyerTaxId: props.data.buyerTaxId || '',
   remarks: props.data.remarks || '',
+  items: props.data.items || [],
 })
 
 // 驗證規則
@@ -285,6 +385,53 @@ const rules = reactive<FormRules<InvoiceData>>({
   buyer: [{ required: true, message: '請輸入購買方名稱', trigger: 'blur' }],
 })
 
+// Items 項目的驗證規則
+const itemRules = {
+  name: [{ required: true, message: '請輸入項目名稱', trigger: 'blur' }],
+  quantity: [
+    { required: true, message: '請輸入數量', trigger: 'blur' },
+    {
+      validator: (_rule: any, value: string, callback: any) => {
+        if (!value || value === '') {
+          callback(new Error('請輸入數量'))
+          return
+        }
+        const numValue = Number(value)
+        if (isNaN(numValue)) {
+          callback(new Error('數量必須為數字'))
+        } else if (numValue <= 0) {
+          callback(new Error('數量必須大於 0'))
+        } else if (!Number.isInteger(numValue)) {
+          callback(new Error('數量必須為整數'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur',
+    },
+  ],
+  price: [
+    { required: true, message: '請輸入價格', trigger: 'blur' },
+    {
+      validator: (_rule: any, value: string, callback: any) => {
+        if (!value || value === '') {
+          callback(new Error('請輸入價格'))
+          return
+        }
+        const numValue = Number(value)
+        if (isNaN(numValue)) {
+          callback(new Error('價格必須為數字'))
+        } else if (numValue < 0) {
+          callback(new Error('價格不能為負數'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur',
+    },
+  ],
+}
+
 // 監聽 props.data 的變化，同步到 formData
 watch(
   () => props.data,
@@ -305,7 +452,8 @@ watch(
       formData.sellerTaxId !== (newData.sellerTaxId || '') ||
       formData.buyer !== (newData.buyer || '') ||
       formData.buyerTaxId !== (newData.buyerTaxId || '') ||
-      formData.remarks !== (newData.remarks || '')
+      formData.remarks !== (newData.remarks || '') ||
+      JSON.stringify(formData.items) !== JSON.stringify(newData.items || [])
 
     if (hasChange) {
       isSyncing = true
@@ -321,6 +469,7 @@ watch(
       formData.buyer = newData.buyer || ''
       formData.buyerTaxId = newData.buyerTaxId || ''
       formData.remarks = newData.remarks || ''
+      formData.items = newData.items || []
       // 使用 nextTick 確保 DOM 更新後再重置標誌
       setTimeout(() => {
         isSyncing = false
@@ -341,6 +490,36 @@ const handleChange = (
   ;(formData as any)[field] = safeValue
   // 發送變更事件給父組件
   emit('change', { ...formData, [field]: safeValue })
+}
+
+// 處理添加項目
+const handleAddItem = () => {
+  const newItem: InvoiceItem = {
+    id: Math.random().toString(36).substr(2, 9),
+    name: '',
+    quantity: '',
+    price: '',
+  }
+  formData.items.push(newItem)
+  emit('change', { ...formData })
+}
+
+// 處理刪除項目
+const handleRemoveItem = (index: number) => {
+  formData.items.splice(index, 1)
+  emit('change', { ...formData })
+}
+
+// 處理項目變更
+const handleItemChange = (
+  index: number,
+  field: keyof InvoiceItem,
+  value: string
+) => {
+  if (formData.items[index]) {
+    ;(formData.items[index] as any)[field] = value
+    emit('change', { ...formData })
+  }
 }
 
 // 暴露驗證方法供父組件使用
