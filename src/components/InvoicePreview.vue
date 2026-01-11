@@ -42,11 +42,11 @@
             </div>
 
             <!-- 狀態文字 -->
-            <span
+            <!-- <span
               class="font-semibold text-slate-800 tracking-wide bg-white px-6 py-2.5 rounded-full shadow-lg text-base"
             >
               {{ session.status === 'uploading' ? '上傳中...' : 'AI 處理中' }}
-            </span>
+            </span> -->
             <p class="mt-3 text-sm text-slate-600">
               {{
                 session.status === 'uploading'

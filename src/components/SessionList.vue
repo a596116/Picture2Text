@@ -79,9 +79,6 @@
             class="absolute inset-0 bg-black/30 backdrop-blur-[2px] flex items-center justify-center rounded-lg"
           >
             <div class="relative">
-              <div
-                class="absolute inset-0 bg-blue-500/40 rounded-full pulse-ring w-8 h-8"
-              ></div>
               <Loader2
                 :size="16"
                 class="text-white animate-spin relative z-10"
