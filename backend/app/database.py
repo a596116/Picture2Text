@@ -85,12 +85,30 @@ def init_db():
     """
     初始化資料庫
     建立所有資料表
+    
+    注意：此方法使用 create_all()，如果表已存在則不會報錯，但也不會更新表結構。
+    建議使用 Alembic migration 來管理資料庫變更。
+    詳見 MIGRATION.md
     """
     try:
         init_database()
         if engine is None:
             return
         from app.models import user  # noqa: F401
+        
+        # 檢查表是否已存在
+        from sqlalchemy import inspect
+        inspector = inspect(engine)
+        existing_tables = inspector.get_table_names()
+        
+        # 只創建不存在的表
         Base.metadata.create_all(bind=engine)
+        
+        if existing_tables:
+            print(f"警告：資料庫中已存在以下表: {', '.join(existing_tables)}")
+            print("create_all() 不會更新現有表的結構。")
+            print("如需更新表結構，請使用 Alembic migration。")
+        else:
+            print("所有表已成功創建。")
     except Exception as e:
         print(f"資料庫初始化失敗: {str(e)}")
