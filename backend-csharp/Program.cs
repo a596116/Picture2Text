@@ -24,11 +24,12 @@ builder.Services.Configure<Microsoft.AspNetCore.Mvc.ApiBehaviorOptions>(options 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 配置 JWT 認證
+// 配置 JWT 認證（支援多套系統）
 var jwtSecretKey = builder.Configuration["Jwt:SecretKey"] 
     ?? throw new InvalidOperationException("JWT SecretKey 未設定");
-var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "Picture2Text.Api";
-var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "Picture2Text.Client";
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "AuthCenter.Api";
+var jwtAudiences = builder.Configuration.GetSection("Jwt:Audiences").Get<List<string>>() 
+    ?? new List<string> { "AllSystems" };
 
 builder.Services.AddAuthentication(options =>
 {
@@ -44,7 +45,7 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuer = true,
         ValidIssuer = jwtIssuer,
         ValidateAudience = true,
-        ValidAudience = jwtAudience,
+        ValidAudiences = jwtAudiences,  // 支援多個系統的 Audience
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
@@ -52,13 +53,34 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+// 註冊 HttpContextAccessor（用於取得 HTTP 請求資訊）
+builder.Services.AddHttpContextAccessor();
+
 // 註冊服務
 builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<RefreshTokenService>();
+builder.Services.AddScoped<SessionService>();
+builder.Services.AddScoped<LoginHistoryService>();
 builder.Services.AddScoped<AuthService>();
 
-// 配置 CORS
+// 註冊背景服務
+builder.Services.AddHostedService<TokenCleanupService>();
+
+// 配置 CORS（針對多套系統）
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() 
+    ?? new[] { "http://localhost:3000" };
+
 builder.Services.AddCors(options =>
 {
+    options.AddPolicy("AllowCompanySystems", policy =>
+    {
+        policy.WithOrigins(allowedOrigins)  // 只允許公司內部系統
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();  // 支援 Cookie（用於 Refresh Token）
+    });
+    
+    // 開發環境可以保留 AllowAll
     options.AddPolicy("AllowAll", policy =>
     {
         policy.AllowAnyOrigin()
@@ -74,8 +96,8 @@ builder.Services.AddSwaggerGen(options =>
     options.SwaggerDoc("v1", new OpenApiInfo
     {
         Version = "v1",
-        Title = "Picture2Text API",
-        Description = "Picture2Text API 文檔 - 使用 JWT 認證的後端 API",
+        Title = "認證中心 API",
+        Description = "微服務認證中心 - 提供完整的 JWT 認證、Refresh Token、會話管理功能",
         Contact = new OpenApiContact
         {
             Name = "API Support",
@@ -158,7 +180,15 @@ if (app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
-app.UseCors("AllowAll");
+// 生產環境使用限制的 CORS，開發環境使用 AllowAll
+if (app.Environment.IsProduction())
+{
+    app.UseCors("AllowCompanySystems");
+}
+else
+{
+    app.UseCors("AllowAll");
+}
 
 app.UseAuthentication();
 app.UseAuthorization();

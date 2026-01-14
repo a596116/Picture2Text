@@ -1,124 +1,206 @@
-# Picture2Text API (ASP.NET Core)
+# 🔐 微服務認證中心 (ASP.NET Core)
 
-這是 Picture2Text 專案的 ASP.NET Core 後端 API，使用 Entity Framework Core 連接 MSSQL 資料庫。
+企業級微服務認證中心，提供完整的 JWT 認證、Refresh Token、會話管理和安全審計功能。
 
-## 功能
+## ✨ 核心功能
 
-- ✅ 使用者登入（JWT 認證）
-- ✅ 使用者資料查詢（Profile）
+### 認證功能
+- ✅ JWT Access Token + Refresh Token 雙重認證
+- ✅ Token Rotation（自動撤銷舊 token）
+- ✅ Token 驗證服務（供其他微服務使用）
+- ✅ 多裝置登入支援
+- ✅ 安全登出（單一或全部裝置）
 
-## 技術棧
+### 安全功能
+- ✅ 防暴力破解（15分鐘5次失敗鎖定）
+- ✅ Token 加密存儲（SHA-256）
+- ✅ 登入歷史追蹤
+- ✅ 會話管理（追蹤所有活躍登入）
+- ✅ IP、裝置、User-Agent 記錄
+
+### 管理功能
+- ✅ 查看所有活躍會話
+- ✅ 結束指定會話
+- ✅ 查看登入歷史
+- ✅ 自動清理過期資料（背景服務）
+
+### 微服務支援
+- ✅ 集中式驗證（調用 API）
+- ✅ 分散式驗證（共享 JWT 密鑰）
+- ✅ 完整的整合範例和文檔
+
+## 🛠️ 技術棧
 
 - .NET 8.0
 - ASP.NET Core Web API
-- Entity Framework Core
-- SQL Server
+- Entity Framework Core 8.0
+- SQL Server 2019+
 - JWT Bearer Authentication
 - BCrypt.Net (密碼加密)
-- Swagger/OpenAPI
+- Swagger/OpenAPI 文檔
+- Background Service (自動清理)
 
-## 專案結構
+## 📁 專案結構
 
 ```
 backend-csharp/
-├── Controllers/              # API 控制器
-│   ├── AuthController.cs        # 登入 API
-│   └── ProfileController.cs     # 使用者資料 API
-├── Data/                     # 資料存取層
-│   └── ApplicationDbContext.cs
-├── DTOs/                     # 資料傳輸物件
-│   ├── Requests/                # 請求 DTOs
-│   │   └── LoginRequest.cs
-│   └── Responses/               # 回應 DTOs
-│       ├── LoginResponse.cs
-│       ├── ProfileResponse.cs
+├── Controllers/                      # API 控制器
+│   ├── AuthController.cs             # 認證 API（登入、刷新、驗證、登出）
+│   ├── SessionController.cs          # 會話管理 API
+│   └── ProfileController.cs          # 使用者資料 API
+│
+├── Services/                         # 業務邏輯服務
+│   ├── AuthService.cs                # 認證服務（主要業務邏輯）
+│   ├── JwtService.cs                 # JWT Token 生成和驗證
+│   ├── RefreshTokenService.cs        # Refresh Token 管理
+│   ├── SessionService.cs             # 會話管理
+│   ├── LoginHistoryService.cs        # 登入歷史記錄
+│   └── TokenCleanupService.cs        # 背景清理服務
+│
+├── Models/                           # 資料模型
+│   ├── User.cs                       # 使用者模型
+│   ├── RefreshToken.cs               # Refresh Token 模型
+│   ├── UserSession.cs                # 會話模型
+│   └── LoginHistory.cs               # 登入歷史模型
+│
+├── DTOs/                             # 資料傳輸物件
+│   ├── Requests/                     # 請求 DTOs
+│   │   ├── LoginRequest.cs
+│   │   ├── RefreshTokenRequest.cs
+│   │   ├── RevokeTokenRequest.cs
+│   │   └── ValidateTokenRequest.cs
+│   └── Responses/                    # 回應 DTOs
 │       ├── ApiResponse.cs
-│       └── ValidationErrorResponse.cs
-├── Filters/                  # 過濾器
-│   └── ValidationErrorFilter.cs # 驗證錯誤過濾器
-├── Models/                    # 資料模型
-│   └── User.cs
-├── Services/                  # 業務邏輯服務
-│   ├── IAuthService.cs
-│   ├── AuthService.cs
-│   ├── IJwtService.cs
-│   └── JwtService.cs
-├── appsettings.json           # 應用程式設定
-└── Program.cs                 # 應用程式入口點
+│       ├── TokenResponse.cs
+│       ├── ValidateTokenResponse.cs
+│       ├── SessionResponse.cs
+│       └── LoginHistoryResponse.cs
+│
+├── Data/                             # 資料存取層
+│   └── ApplicationDbContext.cs
+│
+├── Filters/                          # 過濾器
+│   └── ValidationErrorFilter.cs
+│
+├── Documentation/                    # 📚 完整文檔
+│   ├── AUTH_CENTER_GUIDE.md          # 使用指南
+│   ├── ARCHITECTURE.md               # 架構設計
+│   ├── MICROSERVICE_INTEGRATION_EXAMPLE.md  # 整合範例
+│   ├── MIGRATION_COMMANDS.md         # 資料庫遷移
+│   ├── UPGRADE_SUMMARY.md            # 升級總結
+│   └── QUICK_START_CHECKLIST.md      # 快速啟動檢查清單
+│
+├── appsettings.json                  # 應用程式設定
+└── Program.cs                        # 應用程式入口點
 ```
 
-## 設定
+## ⚙️ 快速開始
 
-### 資料庫連線
+### 1. 安裝依賴
 
-在 `appsettings.json` 中設定資料庫連線字串：
+```bash
+# 安裝 EF Core Tools
+dotnet tool install --global dotnet-ef
+
+# 還原套件
+dotnet restore
+```
+
+### 2. 設定資料庫
+
+編輯 `appsettings.json`：
 
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Database=testdb;User Id=sa;Password=password;TrustServerCertificate=True;"
+    "DefaultConnection": "Server=localhost;Database=authcenter;User Id=sa;Password=YourPassword;TrustServerCertificate=True;"
   }
 }
 ```
 
-### JWT 設定
+### 3. 執行資料庫遷移
 
-在 `appsettings.json` 中設定 JWT 相關參數：
+```bash
+# 創建遷移
+dotnet ef migrations add AddAuthCenterTables
+
+# 更新資料庫
+dotnet ef database update
+```
+
+### 4. 設定 JWT 密鑰
+
+**重要**：生產環境請使用強密鑰（至少 64 個隨機字元）
 
 ```json
 {
   "Jwt": {
-    "SecretKey": "your-secret-key-change-this-to-a-long-random-string-at-least-32-characters",
-    "Issuer": "Picture2Text.Api",
-    "Audience": "Picture2Text.Client",
-    "ExpirationMinutes": "30"
+    "SecretKey": "your-very-long-and-secure-secret-key-minimum-32-characters",
+    "Issuer": "AuthCenter.Api",
+    "Audience": "Microservices.Client",
+    "ExpirationMinutes": "30",
+    "RefreshTokenExpirationDays": "7"
   }
 }
 ```
 
-## 資料庫
+### 5. 啟動服務
 
-### 自動創建資料庫和資料表
-
-**重要**：應用程式會在啟動時自動檢查並創建資料庫和資料表（如果不存在）。
-
-當您首次啟動應用程式時，系統會：
-- 自動創建資料庫（如果不存在）
-- 自動創建 `User` 資料表（如果不存在）
-- 根據模型配置創建所有必要的索引
-
-**User 表的結構**（會自動創建）：
-
-```sql
-CREATE TABLE [User] (
-    [ID] INT PRIMARY KEY IDENTITY(1,1),
-    [ID_NO] NVARCHAR(50) NOT NULL,
-    [Name] NVARCHAR(100) NOT NULL,
-    [Password] NVARCHAR(255) NOT NULL
-);
-
--- 自動創建的索引
-CREATE UNIQUE INDEX IX_User_ID_NO ON [User]([ID_NO]);
+```bash
+dotnet run
 ```
 
-**注意事項**：
-- 使用 `Database.EnsureCreated()` 方法自動創建
-- 只會在資料庫或資料表不存在時創建
-- 如果資料表已存在但結構不同，**不會自動更新**表結構
-- 適合開發環境使用
-- 生產環境建議使用 Migrations（詳見 `DATABASE_SETUP.md`）
+訪問 Swagger UI：`http://localhost:5000/swagger`
 
-## API 端點
+## 🗄️ 資料庫結構
 
-### 1. 登入
+系統使用 EF Core Migrations 管理資料庫，包含以下資料表：
 
-**POST** `/api/auth/login`
+### 資料表說明
 
-請求體：
-```json
+1. **User** - 使用者基本資料
+2. **RefreshToken** - Refresh Token 存儲（SHA-256 加密）
+3. **UserSession** - 使用者會話追蹤
+4. **LoginHistory** - 登入歷史記錄（成功/失敗）
+
+詳細的資料表結構和關聯請參考 [ARCHITECTURE.md](./ARCHITECTURE.md)
+
+## 📡 主要 API 端點
+
+### 認證相關
+
+| 方法 | 路徑 | 說明 | 認證 |
+|-----|------|------|------|
+| POST | `/api/auth/login` | 使用者登入，返回 Access Token 和 Refresh Token | ❌ |
+| POST | `/api/auth/refresh` | 刷新 Token，獲取新的 Access Token | ❌ |
+| POST | `/api/auth/revoke` | 撤銷 Token（登出） | ✅ |
+| POST | `/api/auth/validate` | 驗證 Token（供其他微服務使用） | ❌ |
+| GET | `/api/auth/me` | 取得當前使用者資訊 | ✅ |
+
+### 會話管理
+
+| 方法 | 路徑 | 說明 | 認證 |
+|-----|------|------|------|
+| GET | `/api/session/active` | 查看所有活躍會話 | ✅ |
+| DELETE | `/api/session/{sessionId}` | 結束指定會話 | ✅ |
+| GET | `/api/session/history` | 查看登入歷史 | ✅ |
+
+### 使用者資料
+
+| 方法 | 路徑 | 說明 | 認證 |
+|-----|------|------|------|
+| GET | `/api/profile` | 取得使用者詳細資料 | ✅ |
+
+### API 使用範例
+
+#### 1. 登入
+```bash
+POST /api/auth/login
+Content-Type: application/json
+
 {
-  "username": "testuser",
-  "password": "password123"
+  "userId": 1,
+  "password": "yourpassword"
 }
 ```
 
@@ -128,88 +210,163 @@ CREATE UNIQUE INDEX IX_User_ID_NO ON [User]([ID_NO]);
   "code": 200,
   "message": "登入成功",
   "data": {
-    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "accessToken": "eyJhbGc...",
+    "refreshToken": "aBc123...",
     "tokenType": "Bearer",
-    "expiresAt": "2024-01-01T12:00:00Z"
+    "expiresAt": "2026-01-14T12:30:00Z",
+    "refreshTokenExpiresAt": "2026-01-21T11:30:00Z",
+    "sessionId": "uuid-session-id"
   }
 }
 ```
 
-### 2. 獲取使用者資料
+#### 2. 刷新 Token
+```bash
+POST /api/auth/refresh
+Content-Type: application/json
 
-**GET** `/api/profile`
-
-Headers:
-```
-Authorization: Bearer {token}
-```
-
-回應：
-```json
 {
-  "code": 200,
-  "message": "操作成功",
-  "data": {
-    "id": 1,
-    "username": "testuser",
-    "email": "test@example.com",
-    "isActive": true,
-    "isSuperuser": false,
-    "createdAt": "2024-01-01T00:00:00Z",
-    "updatedAt": "2024-01-01T00:00:00Z"
-  }
+  "refreshToken": "aBc123..."
 }
 ```
 
-## 執行
+#### 3. 驗證 Token（供其他微服務使用）
+```bash
+POST /api/auth/validate
+Content-Type: application/json
+
+{
+  "token": "eyJhbGc..."
+}
+```
+
+更多 API 範例請參考 [AUTH_CENTER_GUIDE.md](./AUTH_CENTER_GUIDE.md)
+
+## 🌐 微服務整合
+
+### 方案 1：共享 JWT 密鑰（推薦）
+
+在其他微服務中使用相同的 JWT 配置：
+
+```csharp
+// 其他微服務的 Program.cs
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes("與認證中心相同的密鑰")),
+            ValidateIssuer = true,
+            ValidIssuer = "AuthCenter.Api",
+            ValidateAudience = true,
+            ValidAudience = "Microservices.Client"
+        };
+    });
+```
+
+### 方案 2：調用驗證 API
+
+在其他微服務中調用 `/api/auth/validate` 端點驗證 Token。
+
+完整的整合範例（包含 C#、JavaScript、Flutter 等）請參考：
+- [MICROSERVICE_INTEGRATION_EXAMPLE.md](./MICROSERVICE_INTEGRATION_EXAMPLE.md)
+
+## 📚 完整文檔（已優化）
+
+### 🚀 快速開始
+| 文檔 | 說明 |
+|-----|------|
+| **[QUICK_START_CHECKLIST.md](./QUICK_START_CHECKLIST.md)** | ✅ 5 步快速啟動指南 |
+| **[MIGRATION_COMMANDS.md](./MIGRATION_COMMANDS.md)** | 🗄️ 資料庫設定與遷移 |
+
+### 🏗️ 架構與整合
+| 文檔 | 說明 |
+|-----|------|
+| **[API_GATEWAY_INTEGRATION.md](./API_GATEWAY_INTEGRATION.md)** ⭐ | 🚪 API Gateway 整合完整指南（Nginx/IIS） |
+| **[ARCHITECTURE.md](./ARCHITECTURE.md)** | 🏗️ 系統架構設計與資料模型 |
+| **[nginx.conf.example](./nginx.conf.example)** | ⚙️ Nginx 配置範例（可直接使用） |
+
+### 📖 API 參考
+| 文檔 | 說明 |
+|-----|------|
+| **[AUTH_CENTER_GUIDE.md](./AUTH_CENTER_GUIDE.md)** | 📖 所有 API 端點詳細說明 |
+| **Swagger UI** | 📊 互動式 API 文檔 (http://localhost:5000/swagger) |
+
+### 📝 其他
+| 文檔 | 說明 |
+|-----|------|
+| **[UPGRADE_SUMMARY.md](./UPGRADE_SUMMARY.md)** | 📋 升級內容總結 |
+
+## 🧪 測試
+
+### Swagger UI
+
+訪問 `http://localhost:5000/swagger` 進行測試：
+
+1. 調用 `/api/auth/login` 登入
+2. 複製返回的 `accessToken`
+3. 點擊右上角 "Authorize" 按鈕
+4. 輸入 `Bearer {accessToken}`
+5. 測試需要認證的端點
 
 ### 使用 .NET CLI
 
 ```bash
-# 還原套件
-dotnet restore
-
-# 執行應用程式
+# 開發模式運行
 dotnet run
-```
 
-### 啟用熱更新（Hot Reload）
-
-使用 `dotnet watch` 命令可以啟用熱更新，當您修改程式碼時，應用程式會自動重新編譯並重啟：
-
-```bash
-# 使用熱更新執行應用程式
+# 使用熱更新
 dotnet watch run
+
+# 執行測試（如果有）
+dotnet test
 ```
 
-**熱更新功能：**
-- 自動監聽 `.cs`、`.json`、`.csproj` 等檔案變更
-- 修改程式碼後自動重新編譯
-- 自動重啟應用程式
-- 保持應用程式狀態（部分情況下）
+## 🔒 安全性考量
 
-**注意事項：**
-- 某些重大變更（如修改 `Program.cs` 的結構）可能需要手動重啟
-- 資料庫連線字串變更需要重啟
-- 配置檔案變更會觸發重啟
+### 生產環境部署前必做
 
-應用程式預設會在 `https://localhost:5001` 或 `http://localhost:5000` 執行。
+1. ✅ **更換 JWT 密鑰** - 至少 64 個隨機字元
+2. ✅ **啟用 HTTPS** - 強制使用加密連接
+3. ✅ **更新資料庫密碼** - 使用強密碼
+4. ✅ **調整 CORS 政策** - 限制允許的來源
+5. ✅ **保護 Swagger UI** - 添加認證或禁用
+6. ✅ **使用環境變數** - 敏感配置不要寫在代碼中
+7. ✅ **啟用日誌記錄** - 監控所有操作
+8. ✅ **設定速率限制** - 防止濫用
 
-### 使用 Visual Studio
+### 內建安全功能
 
-1. 開啟 `Picture2Text.Api.csproj`
-2. 按 F5 執行
+- ✅ Refresh Token Rotation（防 Token 被盜用）
+- ✅ Token 加密存儲（SHA-256）
+- ✅ 防暴力破解（15分鐘5次失敗鎖定）
+- ✅ 登入歷史追蹤（安全審計）
+- ✅ 會話管理（可查看和結束可疑會話）
 
-## Swagger 文檔
+## 🎯 主要特性
 
-在開發環境下，可以透過以下網址存取 Swagger 文檔：
+### 為什麼選擇這個認證中心？
 
-- `https://localhost:5001/swagger` 或
-- `http://localhost:5000/swagger`
+1. **完整功能** - Refresh Token、會話管理、登入歷史一應俱全
+2. **微服務友好** - 支援集中式和分散式驗證
+3. **安全可靠** - 多重安全機制，防止常見攻擊
+4. **易於整合** - 完整的文檔和代碼範例
+5. **自動維護** - 背景服務自動清理過期資料
+6. **生產就緒** - 可直接用於生產環境
 
-## 注意事項
+## 🚀 下一步
 
-1. **密碼加密**：專案使用 BCrypt 進行密碼加密，確保資料庫中的密碼是使用 BCrypt 加密的。
-2. **JWT Secret Key**：請在生產環境中使用強隨機字串作為 JWT Secret Key。
-3. **資料庫連線**：請根據實際環境調整連線字串。
-4. **CORS**：目前設定為允許所有來源，生產環境請調整為特定來源。
+1. 📖 閱讀 [AUTH_CENTER_GUIDE.md](./AUTH_CENTER_GUIDE.md) 了解所有功能
+2. ✅ 使用 [QUICK_START_CHECKLIST.md](./QUICK_START_CHECKLIST.md) 進行部署
+3. 🔗 參考 [MICROSERVICE_INTEGRATION_EXAMPLE.md](./MICROSERVICE_INTEGRATION_EXAMPLE.md) 整合其他服務
+4. 🏗️ 了解 [ARCHITECTURE.md](./ARCHITECTURE.md) 以便自訂和擴展
+
+## 📝 授權
+
+MIT License
+
+---
+
+**需要幫助？** 查看文檔或檢查 Swagger UI 的詳細 API 說明。

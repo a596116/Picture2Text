@@ -1,0 +1,263 @@
+# Nginx API Gateway 配置範例
+# 適用於公司多套系統的集中式認證
+
+# ===================================
+# 上游服務定義
+# ===================================
+
+# 認證中心（內部使用）
+upstream auth_service {
+    server localhost:5000;  # 認證中心地址
+    keepalive 32;           # 連接池
+}
+
+# HR 系統後端
+upstream hr_backend {
+    server localhost:3001;
+    keepalive 16;
+}
+
+# 財務系統後端
+upstream finance_backend {
+    server localhost:3002;
+    keepalive 16;
+}
+
+# 庫存系統後端
+upstream inventory_backend {
+    server localhost:3003;
+    keepalive 16;
+}
+
+# ===================================
+# 認證驗證服務（內部使用）
+# ===================================
+server {
+    listen 8080;
+    server_name localhost;
+    
+    # Token 驗證端點（只能內部調用）
+    location = /auth-validate {
+        internal;  # 只能被 auth_request 調用
+        
+        proxy_pass http://auth_service/api/auth/validate;
+        proxy_method POST;
+        proxy_pass_request_body off;
+        proxy_set_header Content-Length "";
+        
+        # 從請求中提取 Authorization header
+        set $auth_token $http_authorization;
+        
+        # 移除 "Bearer " 前綴
+        set_by_lua_block $clean_token {
+            local token = ngx.var.auth_token
+            if token then
+                return string.gsub(token, "Bearer ", "")
+            end
+            return ""
+        }
+        
+        # 構造 JSON 請求體
+        proxy_set_header Content-Type "application/json";
+        set $request_body '{"token":"';
+        set $request_body $request_body$clean_token;
+        set $request_body $request_body'"}';
+        proxy_set_body $request_body;
+        
+        # 傳遞原始請求資訊
+        proxy_set_header X-Original-URI $request_uri;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+
+# ===================================
+# 共用配置（HTTPS、日誌等）
+# ===================================
+
+# 日誌格式
+log_format api_gateway '$remote_addr - [$time_local] '
+                      '"$request" $status $body_bytes_sent '
+                      'user_id:$sent_http_x_user_id '
+                      'upstream:$upstream_addr '
+                      'rt:$request_time ut:$upstream_response_time';
+
+# ===================================
+# HR 系統 Gateway
+# ===================================
+server {
+    listen 80;
+    server_name hr.yourcompany.com;
+    
+    # 啟用訪問日誌
+    access_log /var/log/nginx/hr_gateway.log api_gateway;
+    error_log /var/log/nginx/hr_gateway_error.log;
+    
+    # 限流設定
+    limit_req_zone $binary_remote_addr zone=hr_limit:10m rate=100r/s;
+    
+    location / {
+        # 1. 速率限制
+        limit_req zone=hr_limit burst=50 nodelay;
+        
+        # 2. 驗證 Token（調用內部認證服務）
+        auth_request /auth-validate;
+        
+        # 3. 從認證響應中提取使用者資訊
+        auth_request_set $user_id $upstream_http_x_user_id;
+        auth_request_set $user_name $upstream_http_x_user_name;
+        auth_request_set $user_idno $upstream_http_x_user_idno;
+        
+        # 4. 驗證失敗時的處理
+        error_page 401 = @error401;
+        error_page 403 = @error403;
+        
+        # 5. 轉發到後端，並附加使用者資訊
+        proxy_pass http://hr_backend;
+        
+        # 傳遞使用者資訊（後端可以直接使用）
+        proxy_set_header X-User-Id $user_id;
+        proxy_set_header X-User-Name $user_name;
+        proxy_set_header X-User-IdNo $user_idno;
+        
+        # 傳遞客戶端資訊
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $host;
+        
+        # 移除 Authorization header（後端不需要，安全考量）
+        proxy_set_header Authorization "";
+        
+        # 超時設定
+        proxy_connect_timeout 10s;
+        proxy_send_timeout 30s;
+        proxy_read_timeout 30s;
+    }
+    
+    # 錯誤處理
+    location @error401 {
+        default_type application/json;
+        return 401 '{"code":401,"message":"未授權，請重新登入"}';
+    }
+    
+    location @error403 {
+        default_type application/json;
+        return 403 '{"code":403,"message":"權限不足"}';
+    }
+}
+
+# ===================================
+# 財務系統 Gateway
+# ===================================
+server {
+    listen 80;
+    server_name finance.yourcompany.com;
+    
+    access_log /var/log/nginx/finance_gateway.log api_gateway;
+    error_log /var/log/nginx/finance_gateway_error.log;
+    
+    limit_req_zone $binary_remote_addr zone=finance_limit:10m rate=100r/s;
+    
+    location / {
+        limit_req zone=finance_limit burst=50 nodelay;
+        
+        auth_request /auth-validate;
+        auth_request_set $user_id $upstream_http_x_user_id;
+        auth_request_set $user_name $upstream_http_x_user_name;
+        auth_request_set $user_idno $upstream_http_x_user_idno;
+        
+        error_page 401 = @error401;
+        error_page 403 = @error403;
+        
+        proxy_pass http://finance_backend;
+        proxy_set_header X-User-Id $user_id;
+        proxy_set_header X-User-Name $user_name;
+        proxy_set_header X-User-IdNo $user_idno;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $host;
+        proxy_set_header Authorization "";
+        
+        proxy_connect_timeout 10s;
+        proxy_send_timeout 30s;
+        proxy_read_timeout 30s;
+    }
+    
+    location @error401 {
+        default_type application/json;
+        return 401 '{"code":401,"message":"未授權，請重新登入"}';
+    }
+    
+    location @error403 {
+        default_type application/json;
+        return 403 '{"code":403,"message":"權限不足"}';
+    }
+}
+
+# ===================================
+# 庫存系統 Gateway
+# ===================================
+server {
+    listen 80;
+    server_name inventory.yourcompany.com;
+    
+    access_log /var/log/nginx/inventory_gateway.log api_gateway;
+    error_log /var/log/nginx/inventory_gateway_error.log;
+    
+    limit_req_zone $binary_remote_addr zone=inventory_limit:10m rate=100r/s;
+    
+    location / {
+        limit_req zone=inventory_limit burst=50 nodelay;
+        
+        auth_request /auth-validate;
+        auth_request_set $user_id $upstream_http_x_user_id;
+        auth_request_set $user_name $upstream_http_x_user_name;
+        auth_request_set $user_idno $upstream_http_x_user_idno;
+        
+        error_page 401 = @error401;
+        error_page 403 = @error403;
+        
+        proxy_pass http://inventory_backend;
+        proxy_set_header X-User-Id $user_id;
+        proxy_set_header X-User-Name $user_name;
+        proxy_set_header X-User-IdNo $user_idno;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $host;
+        proxy_set_header Authorization "";
+        
+        proxy_connect_timeout 10s;
+        proxy_send_timeout 30s;
+        proxy_read_timeout 30s;
+    }
+    
+    location @error401 {
+        default_type application/json;
+        return 401 '{"code":401,"message":"未授權，請重新登入"}';
+    }
+    
+    location @error403 {
+        default_type application/json;
+        return 403 '{"code":403,"message":"權限不足"}';
+    }
+}
+
+# ===================================
+# 認證中心本身（允許前端直接訪問登入等端點）
+# ===================================
+server {
+    listen 80;
+    server_name auth.yourcompany.com;
+    
+    access_log /var/log/nginx/auth_center.log api_gateway;
+    
+    location / {
+        proxy_pass http://auth_service;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $host;
+    }
+}
