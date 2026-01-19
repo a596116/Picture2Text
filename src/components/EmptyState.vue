@@ -13,13 +13,13 @@
         class="fixed inset-0 bg-blue-500/10 backdrop-blur-sm z-40 flex items-center justify-center pointer-events-none"
       >
         <div
-          class="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-12 border-4 border-dashed border-blue-500 animate-pulse"
+          class="bg-white rounded-3xl shadow-2xl p-12 border-4 border-dashed border-blue-500"
         >
           <div class="flex flex-col items-center gap-4">
             <div
               class="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center text-blue-600"
             >
-              <Upload :size="40" :stroke-width="2" class="animate-bounce" />
+              <Upload :size="40" :stroke-width="2" />
             </div>
             <div class="text-center space-y-2">
               <p class="font-bold text-xl text-blue-700">放開以上傳檔案</p>
@@ -30,15 +30,15 @@
       </div>
     </transition>
 
-    <!-- 標題區域（卡片上方） -->
-    <div class="mb-6 relative z-10" :class="{ 'opacity-60': isDragging }">
+    <!-- 標題區域 -->
+    <div class="mb-8 relative z-10" :class="{ 'opacity-60': isDragging }">
       <h1 class="text-4xl font-bold text-slate-800 mb-2">發票</h1>
-      <p class="text-lg text-slate-500">掃描與整理</p>
+      <p class="text-lg text-slate-600">掃描與整理</p>
     </div>
 
     <!-- 白色圓角卡片 -->
     <div
-      class="w-full max-w-md bg-white rounded-3xl shadow-lg p-8 space-y-6 relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700"
+      class="w-full max-w-md bg-white rounded-3xl shadow-lg p-8 space-y-6 relative z-10"
       :class="{ 'opacity-60': isDragging }"
     >
       <!-- 中央掃描圖示 -->
@@ -46,13 +46,13 @@
         <div
           class="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center"
         >
-          <Scan class="text-slate-400" :size="40" :stroke-width="1.5" />
+          <Scan class="text-slate-500" :size="40" :stroke-width="1.5" />
         </div>
       </div>
 
       <!-- 動作按鈕區域 -->
       <div class="space-y-3">
-        <!-- 上傳圖片按鈕（主要按鈕 - 藍色） -->
+        <!-- 上傳圖片按鈕 -->
         <button
           @click="fileInputRef?.click()"
           class="w-full p-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-3 font-medium"
@@ -61,7 +61,7 @@
           <span>上傳圖片</span>
         </button>
 
-        <!-- Camera 按鈕（次要按鈕 - 灰色） -->
+        <!-- Camera 按鈕 -->
         <button
           @click="showCamera = true"
           class="w-full p-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center gap-3 font-medium"
@@ -72,9 +72,9 @@
       </div>
 
       <!-- 上傳提示文字 -->
-      <div class="pt-2 space-y-1">
-        <p class="text-xs text-slate-400">支援拖曳上傳 • 可一次選擇多張圖片</p>
-        <p class="text-sm text-slate-400">支援智慧 AI 提取</p>
+      <div class="pt-4 space-y-2 border-t border-slate-100">
+        <p class="text-xs text-slate-500">支援拖曳上傳，可一次選擇多張圖片</p>
+        <p class="text-sm text-slate-500">支援智慧 AI 提取</p>
       </div>
     </div>
 
