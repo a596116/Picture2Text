@@ -6,18 +6,6 @@
     @dragleave="handleDragLeave"
     @drop="handleDrop"
   >
-    <!-- 背景氛圍效果 -->
-    <div
-      class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none"
-    >
-      <div
-        class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-blue-200/30 rounded-full blur-[100px]"
-      />
-      <div
-        class="absolute top-[40%] -right-[10%] w-[40%] h-[60%] bg-purple-200/30 rounded-full blur-[100px]"
-      />
-    </div>
-
     <!-- 拖曳時的頁面遮罩（覆蓋整個頁面） -->
     <transition name="fade">
       <div
@@ -42,76 +30,66 @@
       </div>
     </transition>
 
+    <!-- 標題區域（卡片上方） -->
+    <div class="mb-6 relative z-10" :class="{ 'opacity-60': isDragging }">
+      <h1 class="text-4xl font-bold text-slate-800 mb-2">發票</h1>
+      <p class="text-lg text-slate-500">掃描與整理</p>
+    </div>
+
+    <!-- 白色圓角卡片 -->
     <div
-      class="max-w-md w-full space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700 relative z-10"
+      class="w-full max-w-md bg-white rounded-3xl shadow-lg p-8 space-y-6 relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700"
       :class="{ 'opacity-60': isDragging }"
     >
-      <!-- 應用圖標 -->
-      <div
-        class="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-white shadow-xl mb-4"
-      >
-        <Scan class="text-slate-900" :size="32" />
+      <!-- 中央掃描圖示 -->
+      <div class="flex justify-center">
+        <div
+          class="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center"
+        >
+          <Scan class="text-slate-400" :size="40" :stroke-width="1.5" />
+        </div>
       </div>
 
-      <!-- 標題和描述 -->
-      <h1 class="text-4xl font-bold tracking-tight text-slate-900">發票辨識</h1>
-      <p class="text-lg text-slate-500 leading-relaxed">
-        使用 AI 快速辨識發票資訊<br />
-        上傳多個檔案開始處理
-      </p>
-
-      <!-- 上傳區域 -->
-      <div class="mt-8 space-y-4">
-        <div
-          class="p-12 bg-white/60 backdrop-blur-xl rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 group cursor-pointer border-dashed border-2 border-slate-300 hover:border-blue-400 relative overflow-hidden"
+      <!-- 動作按鈕區域 -->
+      <div class="space-y-3">
+        <!-- 上傳圖片按鈕（主要按鈕 - 藍色） -->
+        <button
           @click="fileInputRef?.click()"
+          class="w-full p-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-3 font-medium"
         >
-          <div class="flex flex-col items-center gap-4 relative z-10">
-            <div
-              class="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform duration-300"
-            >
-              <Upload :size="32" :stroke-width="1.5" />
-            </div>
-            <div class="space-y-1 text-center">
-              <p class="font-semibold text-lg text-slate-700">點擊上傳發票</p>
-              <p class="text-slate-400 text-sm">
-                支援 JPG、PNG（可多選）或拖曳檔案到頁面任意處
-              </p>
-            </div>
-          </div>
-        </div>
+          <Upload :size="20" :stroke-width="2" />
+          <span>上傳圖片</span>
+        </button>
 
-        <!-- 拍照按鈕 -->
+        <!-- Camera 按鈕（次要按鈕 - 灰色） -->
         <button
           @click="showCamera = true"
-          class="w-full p-4 bg-white/60 backdrop-blur-xl rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200 hover:border-blue-400 flex items-center justify-center gap-3 group"
+          class="w-full p-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center gap-3 font-medium"
         >
-          <div
-            class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600 group-hover:scale-110 transition-transform duration-300"
-          >
-            <Camera :size="20" :stroke-width="1.5" />
-          </div>
-          <span
-            class="font-medium text-slate-700 group-hover:text-blue-600 transition-colors"
-          >
-            使用相機拍照
-          </span>
+          <Camera :size="20" :stroke-width="2" />
+          <span>相機</span>
         </button>
       </div>
 
-      <!-- 隱藏的檔案輸入框（用於選擇檔案） -->
-      <input
-        ref="fileInputRef"
-        type="file"
-        class="hidden"
-        accept="image/*"
-        multiple
-        @change="handleFileChange"
-      />
-
-      <!-- 相機組件 -->
-      <CameraCapture v-model="showCamera" @capture="handleCameraCapture" />
+      <!-- 上傳提示文字 -->
+      <div class="pt-2 space-y-1">
+        <p class="text-xs text-slate-400">支援拖曳上傳 • 可一次選擇多張圖片</p>
+        <p class="text-sm text-slate-400">支援智慧 AI 提取</p>
+      </div>
     </div>
+
+    <!-- 隱藏的檔案輸入框（用於選擇檔案） -->
+    <input
+      ref="fileInputRef"
+      type="file"
+      class="hidden"
+      accept="image/*"
+      multiple
+      @change="handleFileChange"
+    />
+
+    <!-- 相機組件 -->
+    <CameraCapture v-model="showCamera" @capture="handleCameraCapture" />
   </div>
 </template>
 
