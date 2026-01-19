@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
+    "dev:mobile": "node -e \"const os = require('os'); const ifaces = os.networkInterfaces(); let ip = 'localhost'; Object.keys(ifaces).forEach((ifname) => { ifaces[ifname].forEach((iface) => { if (iface.family === 'IPv4' && !iface.internal && (iface.address.startsWith('192.168.') || iface.address.startsWith('10.') || iface.address.startsWith('172.'))) { ip = iface.address; } }); }); console.log('\\n📱 手機訪問: https://' + ip + ':5173\\n');\" && vite",
     "build": "vue-tsc && vite build",
     "preview": "vite preview"
   },
