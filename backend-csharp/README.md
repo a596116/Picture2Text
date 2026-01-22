@@ -284,6 +284,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 ### 🏗️ 架構與整合
 | 文檔 | 說明 |
 |-----|------|
+| **[IIS_DEPLOYMENT_GUIDE.md](./IIS_DEPLOYMENT_GUIDE.md)** ⭐ | 🚀 IIS 部署完整指南（Windows Server） |
 | **[API_GATEWAY_INTEGRATION.md](./API_GATEWAY_INTEGRATION.md)** ⭐ | 🚪 API Gateway 整合完整指南（Nginx/IIS） |
 | **[ARCHITECTURE.md](./ARCHITECTURE.md)** | 🏗️ 系統架構設計與資料模型 |
 | **[nginx.conf.example](./nginx.conf.example)** | ⚙️ Nginx 配置範例（可直接使用） |
