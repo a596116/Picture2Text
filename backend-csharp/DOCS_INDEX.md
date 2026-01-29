@@ -10,6 +10,9 @@
 → **[ARCHITECTURE.md](./ARCHITECTURE.md)** - 完整系統架構說明
 → **[API_GATEWAY_INTEGRATION.md](./API_GATEWAY_INTEGRATION.md)** - Gateway 整合方案
 
+### 🛠️ 我想產生 Controller / 程式碼（類似 NestJS CLI）
+→ **[SCAFFOLDING_GUIDE.md](./SCAFFOLDING_GUIDE.md)** - aspnet-codegenerator 與 dotnet scaffold 使用說明
+
 ### 🔧 我要配置 Nginx/IIS Gateway
 → **[API_GATEWAY_INTEGRATION.md](./API_GATEWAY_INTEGRATION.md)** - 完整配置指南
 → **[nginx.conf.example](./nginx.conf.example)** - Nginx 配置範例
