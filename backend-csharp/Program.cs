@@ -5,8 +5,27 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Picture2Text.Api.Data;
 using Picture2Text.Api.Services;
+using Serilog;
 
-var builder = WebApplication.CreateBuilder(args);
+// 配置 Serilog（在建立 builder 之前）
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(new ConfigurationBuilder()
+        .SetBasePath(Directory.GetCurrentDirectory())
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+        .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
+        .Build())
+    .CreateLogger();
+
+try
+{
+    Log.Information("==========================================");
+    Log.Information("正在啟動 Picture2Text API...");
+    Log.Information("==========================================");
+
+    var builder = WebApplication.CreateBuilder(args);
+
+    // 使用 Serilog 作為日誌提供者
+    builder.Host.UseSerilog();
 
 // Add services to the container.
 builder.Services.AddControllers(options =>
@@ -193,9 +212,6 @@ else
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 取得 logger
-var logger = app.Services.GetRequiredService<ILogger<Program>>();
-
 // 自動創建資料庫和資料表（如果不存在）
 // using (var scope = app.Services.CreateScope())
 // {
@@ -204,25 +220,38 @@ var logger = app.Services.GetRequiredService<ILogger<Program>>();
 //     {
 //         var context = services.GetRequiredService<ApplicationDbContext>();
 //         context.Database.EnsureCreated();
-//         logger.LogInformation("資料庫連接成功，資料表已就緒");
+//         Log.Information("資料庫連接成功，資料表已就緒");
 //     }
 //     catch (Exception ex)
 //     {
-//         logger.LogError(ex, "資料庫初始化時發生錯誤");
+//         Log.Error(ex, "資料庫初始化時發生錯誤");
 //     }
 // }
 
 app.MapControllers();
 
-// 輸出 Swagger 資訊到控制台
-var environment = app.Environment;
-var swaggerUrl = environment.IsDevelopment() 
-    ? "http://localhost:5000/swagger" 
-    : $"http://localhost:5000/swagger";
+    // 輸出 Swagger 資訊到控制台
+    var environment = app.Environment;
+    var swaggerUrl = environment.IsDevelopment() 
+        ? "http://localhost:5000/swagger" 
+        : $"http://localhost:5000/swagger";
 
-logger.LogInformation("==========================================");
-logger.LogInformation("Picture2Text API 已啟動");
-logger.LogInformation("==========================================");
-logger.LogInformation("Swagger UI: {SwaggerUrl}", swaggerUrl);
+    Log.Information("==========================================");
+    Log.Information("Picture2Text API 已啟動成功！");
+    Log.Information("==========================================");
+    Log.Information("環境: {Environment}", environment.EnvironmentName);
+    Log.Information("Swagger UI: {SwaggerUrl}", swaggerUrl);
+    Log.Information("日誌檔案位置: {LogPath}", Path.Combine(Directory.GetCurrentDirectory(), "Logs"));
 
-app.Run();
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "應用程式啟動失敗");
+    throw;
+}
+finally
+{
+    Log.Information("應用程式正在關閉...");
+    Log.CloseAndFlush();
+}
